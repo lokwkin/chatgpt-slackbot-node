@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@slack/bolt": "^3.12.2",
+    "chatgpt": "^3.0.0",
+    "puppeteer": "^19.4.0"
+  }
+}
