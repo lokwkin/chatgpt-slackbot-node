@@ -1,6 +1,8 @@
 # ChatGPT Slack Bot
 
-This Slack Bot is implemented in Node.js, under the hood it depends on [transitive-bullshit/chatgpt-api](https://github.com/transitive-bullshit/chatgpt-api), which uses puppeteer headless browser as solution to connect with ChatGPT.
+This Slack Bot is implemented in Node.js, under the hood it depends on [transitive-bullshit/chatgpt-api](https://github.com/transitive-bullshit/chatgpt-api), which uses puppeteer browser as solution to connect with ChatGPT.
+
+This service is docker containerized and can be deployed onto servers with headless chromium browser without an active display. _(Suggested to use google login in order to bypass recaptcha)_
 
 ## Setup
 
@@ -8,12 +10,14 @@ This Slack Bot is implemented in Node.js, under the hood it depends on [transiti
 1. Register an Slack App in [portal](https://api.slack.com/apps)
 2. Enable Socket Mode
 3. Grant the following permissions
-    - app_mentions:read
-    - channels:history
-    - chat:write
-    - im:history
-    - im:write
-    - reactions:write
+    ```
+    app_mentions:read
+    channels:history
+    chat:write
+    im:history
+    im:write
+    reactions:write
+    ```
 
 ### Build and run with Docker
 ```
