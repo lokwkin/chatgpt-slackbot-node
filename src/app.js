@@ -32,8 +32,7 @@ class ChatGtpSlackBot {
      * @param {ChatGtpSlackBotArgs} args 
      */
     constructor(args) {
-
-
+        
         this.chatApi = new ChatGPTAPIBrowser({
             email: args.chatGptAccEmail,
             password: args.chatGptAccPassword,
@@ -51,7 +50,9 @@ class ChatGtpSlackBot {
         this._setupSlackListener();
     }
 
-
+    /**
+     * Setup listeners that listen to 1) Direct Message to Bot and 2) bot mention in channels
+     */
     _setupSlackListener() {
 
         this.slackApp.message(async ({ message, client, say }) => {
