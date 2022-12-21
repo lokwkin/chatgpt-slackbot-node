@@ -1,5 +1,8 @@
 {
+  "name": "chatgpt-slackbot",
+  "description": "",
   "type": "module",
+  "main": "index.js",
   "dependencies": {
     "@slack/bolt": "^3.12.2",
     "chatgpt": "^3.0.0",
