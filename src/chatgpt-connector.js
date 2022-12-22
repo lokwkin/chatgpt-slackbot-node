@@ -35,37 +35,37 @@ class ChatGptConnector {
         console.log('Start connecting ChatGPT session...');
         await this.chatApi.initSession();
     }
-    
-
-    /**
-     * Check if ChatGpt still authenticated. If not, refresh the session and give wait for 30 sec before returning
-     * @returns {Promise<void>}
-     */
-    async ensureChatGptLogin() {
-        if (!await this.chatApi.getIsAuthenticated()) {
-            console.info('Not authenticated, refreshing session...');
-            await this.chatApi.refreshSession();
-            // wait for 30 seconds
-            await new Promise(r => setTimeout(r, 30000));
-            console.info('Authentication completed.');
-        } 
-    }
 
     /**
      * Ask ChatGPT
      * @param {string} prompt 
      * @param {string} [conversationId] 
      * @param {string} [parentMessageId] 
+     * @param {boolean} [shouldRetry]
      * @return {Promise<ChatResponse>}
      */
-    async ask(prompt, conversationId, parentMessageId) {
-        await this.ensureChatGptLogin();
+    async ask(prompt, conversationId, parentMessageId, shouldRetry = true) {
         console.log(`[${new Date().toISOString()}] chatgpt_request ${JSON.stringify({ prompt, conversationId, parentMessageId })}`);
-        const result = await this.chatApi.sendMessage(prompt, {
-            conversationId: prevAns?.conversationId,
-            parentMessageId: prevAns?.parentMessageId,
-            timeoutMs: 5 * 60 * 1000
-        });
+
+        let result = null;
+        try {
+            result = await this.chatApi.sendMessage(prompt, {
+                conversationId: prevAns?.conversationId,
+                parentMessageId: prevAns?.parentMessageId,
+                timeoutMs: 5 * 60 * 1000
+            });
+        } catch (err) {
+            if (shouldRetry && err.message?.includes('403')) {
+                await this.chatApi.refreshSession();
+                await new Promise(r => setTimeout(r, 10000));
+                result = await this.ask(prompt, conversationId, parentMessageId, false);
+            }
+        }
+
+        if (!result) {
+            throw new Error('Failed to obtain ChatGPT result');
+        }
+        
         console.log(`[${new Date().toISOString()}] chatgpt_response ${JSON.stringify(result)}`); 
         return result;
     }
