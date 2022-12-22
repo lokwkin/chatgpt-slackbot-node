@@ -6,6 +6,7 @@
   "dependencies": {
     "@slack/bolt": "^3.12.2",
     "chatgpt": "^3.0.0",
+    "dotenv": "^16.0.3",
     "puppeteer": "^19.4.0"
   }
 }
