@@ -50,8 +50,8 @@ class ChatGptConnector {
         let result = null;
         try {
             result = await this.chatApi.sendMessage(prompt, {
-                conversationId: prevAns?.conversationId,
-                parentMessageId: prevAns?.parentMessageId,
+                conversationId,
+                parentMessageId,
                 timeoutMs: 5 * 60 * 1000
             });
         } catch (err) {
@@ -60,6 +60,7 @@ class ChatGptConnector {
                 await new Promise(r => setTimeout(r, 10000));
                 result = await this.ask(prompt, conversationId, parentMessageId, false);
             }
+            throw err;
         }
 
         if (!result) {
