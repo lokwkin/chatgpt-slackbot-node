@@ -9,15 +9,7 @@ This service is docker containerized and can be deployed onto servers with headl
 ### Slack Setup
 1. Register an Slack App in [portal](https://api.slack.com/apps)
 2. Enable Socket Mode
-3. Grant the following permissions
-    ```
-    app_mentions:read
-    channels:history
-    chat:write
-    im:history
-    im:write
-    reactions:write
-    ```
+3. Grant these permissions: `app_mentions:read`, `channels:history`, `chat:write`, `im:history`, `im:write`, `reactions:write`
 
 ### Build and run with Docker
 ```
