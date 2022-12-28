@@ -2,12 +2,15 @@
 
 This Slack Bot is implemented in Node.js, under the hood it depends on [transitive-bullshit/chatgpt-api](https://github.com/transitive-bullshit/chatgpt-api), which uses puppeteer browser as solution to connect with ChatGPT.
 
-This service is docker containerized and can be deployed onto servers with headless chromium browser without an active display. _(Suggested to use google login in order to bypass recaptcha)_
+This service is ***docker containerized*** and can be deployed onto servers with headless chromium browser without an active display. _(Suggested to use google login in order to bypass recaptcha)_
 
-## Description
+It also incorporates ***queue mechanism*** with redis, so that it is more flexible to handle request spikes, make sure the requests are sent one by one and in order to protect from being rate limited by ChatGPT.
+
+## Start Modes
 This app has two modes to start:
 1. `slackbot` - listens to slack event for user requests, put request to redis as queue
 2. `chatgpt` - serves as queue worker that listens to queue, forward user's questions to chatgpt, and write to slack on answer.
+
 ## Setup
 
 ### Slack Setup
@@ -37,6 +40,13 @@ docker run chatgpt_slackbot
 
 ## Usage
 - The slackbot will listen to two types of event in slack workspace
-  - Mention your bot in a channel with a question. For example: `@ChatGPT BOT` where are disneyland located?
   - Directly message the bot in slack.
+  - Mention your bot in a channel with a question. For example: `@ChatGPT BOT` who is Donald trump?
 - To ask follow up question, reply in the answer thread, otherwise it will treat it as a new question.
+
+### Mention in Channel
+<img src="./docs/channel-mention.png" width="50%">
+
+### Direct Message
+<img src="./docs/direct-message.png" width="50%">
+
