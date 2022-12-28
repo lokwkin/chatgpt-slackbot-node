@@ -8,6 +8,8 @@ import puppeteer from "puppeteer";
  * @property {string} accPassword
  * @property {boolean} [isGoogleLogin]
  * @property {string|undefined} [proxyServer]
+ * @property {number} [requestTimeoutMs]
+ * @property {number} [queueIntervalMs]
  */
 
 /**
@@ -56,6 +58,12 @@ class ChatGptClient {
             executablePath: puppeteer.executablePath(),
             debug: true,
         });
+
+        /** @type {number} */
+        this.requestTimeoutMs = args.requestTimeoutMs ?? 5 * 60 * 1000;
+
+        /** @type {number} */
+        this.queueIntervalMs = args.queueIntervalMs ?? 3000;
 
         /** @type {AnswerCallback} */
         this.answerCallback = null;
@@ -119,8 +127,8 @@ class ChatGptClient {
                 }
             }
 
-            // wait 10 seconds
-            await new Promise(r => setTimeout(r, 10000));
+            // wait for queue interval
+            await new Promise(r => setTimeout(r, this.queueIntervalMs));
         }
     }
 
@@ -136,7 +144,7 @@ class ChatGptClient {
             const result = await this.chatApi.sendMessage(question.prompt, {
                 conversationId: question.conversationId,
                 parentMessageId: question.parentMessageId,
-                timeoutMs: 5 * 60 * 1000
+                timeoutMs: this.requestTimeoutMs,
             });
             console.log(`[${new Date().toISOString()}] chatgpt_response ${JSON.stringify(result)}`); 
             return result;
