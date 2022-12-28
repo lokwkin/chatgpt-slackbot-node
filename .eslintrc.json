@@ -1,0 +1,23 @@
+{
+
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es6": true,
+        "mocha": true
+    },
+    "extends": [
+        "airbnb-base"
+    ],
+    "parser": "babel-eslint",
+    "rules": {
+        "indent": ["error", 4],
+        "linebreak-style": ["error", "unix"],
+        "quotes": ["error", "single"],
+        "semi": ["error", "always"]
+    },
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "ecmaVersion": "latest"
+}
