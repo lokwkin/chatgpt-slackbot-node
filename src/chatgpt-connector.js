@@ -56,11 +56,14 @@ class ChatGptConnector {
             });
         } catch (err) {
             if (shouldRetry && err.message?.includes('403')) {
+                console.log(`[${new Date().toISOString()}] chatgpt_error ${JSON.stringify({ err })}`);
+                console.log(`[${new Date().toISOString()}] chatgpt_refresh_session`);
                 await this.chatApi.refreshSession();
                 await new Promise(r => setTimeout(r, 10000));
                 result = await this.ask(prompt, conversationId, parentMessageId, false);
+            } else {
+                throw err;
             }
-            throw err;
         }
 
         if (!result) {
