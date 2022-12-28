@@ -56,7 +56,6 @@ class ChatGptClient {
             proxyServer: args.proxyServer ?? undefined,
             isGoogleLogin: args.isGoogleLogin ?? false,
             executablePath: puppeteer.executablePath(),
-            debug: true,
         });
 
         /** @type {number} */
