@@ -38,8 +38,10 @@ async function main() {
         const chatGptClient = new ChatGptClient(0, {
             accEmail: process.env.CHATGPT_EMAIL,
             accPassword: process.env.CHATGPT_PASSWORD,
-            isGoogleLogin: Boolean(Number(process.env.IS_GOOGLE_LOGIN)),
-            proxyServer: process.env.PROXY_SERVER,
+            isGoogleLogin: Boolean(Number(process.env.CHATGPT_IS_GOOGLE_LOGIN)),
+            proxyServer: process.env.CHATGPT_PROXY_SERVER,
+            requestTimeoutMs: process.env.CHATGPT_REQUEST_TIMEOUT_MS,
+            queueIntervalMs: process.env.QUEUE_INTERVAL_MS,
         });
 
         chatGptClient.setCallbacks(async (answer, question, slackMeta) => {
