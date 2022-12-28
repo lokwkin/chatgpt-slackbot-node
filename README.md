@@ -40,5 +40,10 @@ docker run chatgpt_slackbot
   - Directly message the bot in slack.
   - Mention your bot in a channel with a question. For example: `@ChatGPT BOT` who is Donald trump?
 - To ask follow up question, reply in the answer thread, otherwise it will treat it as a new question.
-![Direct Message](./docs/direct-message.png)
-![Mention in Channel](./docs/channel-mention.png)
+
+### Mention in Channel
+<img src="./docs/channel-mention.png" width="50%">
+
+### Direct Message
+<img src="./docs/direct-message.png" width="50%">
+
