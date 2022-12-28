@@ -37,6 +37,8 @@ docker run chatgpt_slackbot
 
 ## Usage
 - The slackbot will listen to two types of event in slack workspace
-  - Mention your bot in a channel with a question. For example: `@ChatGPT BOT` where are disneyland located?
   - Directly message the bot in slack.
+  - Mention your bot in a channel with a question. For example: `@ChatGPT BOT` who is Donald trump?
 - To ask follow up question, reply in the answer thread, otherwise it will treat it as a new question.
+![Direct Message](./docs/direct-message.png)
+![Mention in Channel](./docs/channel-mention.png)
