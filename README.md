@@ -4,10 +4,13 @@ This Slack Bot is implemented in Node.js, under the hood it depends on [transiti
 
 This service is docker containerized and can be deployed onto servers with headless chromium browser without an active display. _(Suggested to use google login in order to bypass recaptcha)_
 
-## Description
+This service incorporates queue mechanism with redis, so that it is more flexible to handle request spikes, make sure the questions are sent one by one and in order to protect from being rate limited by ChatGPT.
+
+## Start Modes
 This app has two modes to start:
 1. `slackbot` - listens to slack event for user requests, put request to redis as queue
 2. `chatgpt` - serves as queue worker that listens to queue, forward user's questions to chatgpt, and write to slack on answer.
+
 ## Setup
 
 ### Slack Setup
