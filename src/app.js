@@ -44,10 +44,10 @@ async function main() {
             queueIntervalMs: Number(process.env.QUEUE_INTERVAL_MS || 3000),
         });
 
-        chatGptClient.setCallbacks(async (answer, question, slackMeta) => {
-            await slackBot.replyAnswer(answer, question, slackMeta);
-        }, async (error, question, slackMeta) => {
-            await slackBot.replyError(error, question, slackMeta);
+        chatGptClient.setCallbacks(async (answer, question, slackMeta, chatgptClientId) => {
+            await slackBot.replyAnswer(answer, question, slackMeta, chatgptClientId);
+        }, async (error, question, slackMeta, chatgptClientId) => {
+            await slackBot.replyError(error, question, slackMeta, chatgptClientId);
         });
 
         await chatGptClient.startChatGptSession();

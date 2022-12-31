@@ -32,6 +32,7 @@ import crypto from 'crypto';
  * @param {ChatGptAnswer} answer
  * @param {ChatGptQuestion} question
  * @param {SlackMeta} slackMeta
+ * @param {string} chatgptClientId
  */
 
 /**
@@ -39,6 +40,7 @@ import crypto from 'crypto';
  * @param {Error} err
  * @param {ChatGptQuestion} question
  * @param {SlackMeta} slackMeta
+ * @param {string} chatgptClientId
  */
 
 
@@ -59,6 +61,9 @@ class ChatGptClient {
 
         /** @type {ChatGptClientArgs} */
         this.accEmail = args.accEmail;
+
+        /** @type {string} */
+        this.clientId = this._obtainClientId();
 
         /** @type {number} */
         this.requestTimeoutMs = args.requestTimeoutMs ?? 5 * 60 * 1000;
@@ -86,33 +91,16 @@ class ChatGptClient {
      * Ask ChatGPT asyncrhonously
      * @param {ChatGptQuestion} question
      * @param {SlackMeta} slackMeta
+     * @param {string} [chatgptClientId]
      * @return {Promise<ChatResponse>}
      */
-    static async ask(question, slackMeta) {
+    static async ask(question, slackMeta, chatgptClientId = undefined) {
 
-        let accEmail;
-        if (question.conversationId) {
-            // Follow up question, look for the respective client.
-            accEmail = await RedisAgent.getInstance().get(`ChatGptConversation.${question.conversationId}.client`);
-        } 
-
-        if (accEmail) {
-            const emailHash = ChatGptClient.getEmailHash(accEmail);
-            await RedisAgent.getInstance().enqueue(`ChatGptClient.${emailHash}`, { question, slackMeta });
+        if (chatgptClientId) {
+            await RedisAgent.getInstance().enqueue(`ChatGptClient.${chatgptClientId}`, { question, slackMeta });
         } else {
             await RedisAgent.getInstance().enqueue(`ChatGptClient.COMMON`, { question, slackMeta });
         }
-    }
-
-    /**
-     * Returns a hash string from a email address
-     * @param {string} accEmail
-     */
-    static getEmailHash(email) {
-        const hash = crypto.createHash('sha256');
-        hash.update(email);
-        const hashedEmail = hash.digest('hex');
-        return hashedEmail.substring(0, 8);
     }
 
     /**
@@ -138,7 +126,7 @@ class ChatGptClient {
         console.info(`[${new Date().toISOString()}] CHATGPT_START_LISTEN_QUEUE`);
         while (true) {
             await this._popAndHandle(`ChatGptClient.COMMON`);
-            await this._popAndHandle(`ChatGptClient.${ChatGptClient.getEmailHash(this.accEmail)}`);
+            await this._popAndHandle(`ChatGptClient.${this.clientId}`);
             await new Promise(r => setTimeout(r, this.queueIntervalMs));
         }
     }
@@ -152,11 +140,9 @@ class ChatGptClient {
         if (item) {
             try {
                 const answer = await this._handleAsk(item.question, true);
-                // Mark the handling account of the question
-                await RedisAgent.getInstance().set(`ChatGptConversation.${answer.conversationId}.client`, this.accEmail);
-                await this.answerCallback(answer, item.question, item.slackMeta);
+                await this.answerCallback(answer, item.question, item.slackMeta, this.clientId);
             } catch (err) {
-                await this.errorCallback(err, item.question, item.slackMeta);
+                await this.errorCallback(err, item.question, item.slackMeta, this.clientId);
             }
         }
     }
@@ -191,6 +177,16 @@ class ChatGptClient {
                 throw err;
             }
         }
+    }
+
+    /**
+     * Returns a hash string from account email 
+     */
+    _obtainClientId() {
+        const hash = crypto.createHash('sha256');
+        hash.update(this.accEmail);
+        const hashedEmail = hash.digest('hex');
+        return hashedEmail.substring(0, 8);
     }
 }
 
