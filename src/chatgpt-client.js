@@ -139,6 +139,7 @@ class ChatGptClient {
         while (true) {
             await this._popAndHandle(`ChatGptClient.COMMON`);
             await this._popAndHandle(`ChatGptClient.${ChatGptClient.getEmailHash(this.accEmail)}`);
+            await new Promise(r => setTimeout(r, this.queueIntervalMs));
         }
     }
 
@@ -156,8 +157,6 @@ class ChatGptClient {
                 await this.answerCallback(answer, item.question, item.slackMeta);
             } catch (err) {
                 await this.errorCallback(err, item.question, item.slackMeta);
-            } finally {
-                await new Promise(r => setTimeout(r, this.queueIntervalMs));
             }
         }
     }
