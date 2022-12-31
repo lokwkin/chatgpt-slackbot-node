@@ -1,6 +1,6 @@
 import ChatGptClient from './chatgpt-client.js';
 import ChatGtpSlackBot from './slackbot.js';
-import RedisQueue from './redis-queue.js';
+import RedisAgent from './redis-agent.js';
 
 import dotenv from 'dotenv';
 
@@ -17,7 +17,7 @@ async function main() {
         throw new Error('Missing slack token');
     };
 
-    RedisQueue.initialize({
+    RedisAgent.initialize({
         redisUrl: process.env.REDIS_URL,
     });
 
@@ -35,7 +35,7 @@ async function main() {
             throw new Error('Missing email / password');
         };
 
-        const chatGptClient = new ChatGptClient(0, {
+        const chatGptClient = new ChatGptClient({
             accEmail: process.env.CHATGPT_EMAIL,
             accPassword: process.env.CHATGPT_PASSWORD,
             isGoogleLogin: Boolean(Number(process.env.CHATGPT_IS_GOOGLE_LOGIN)),

@@ -1,6 +1,7 @@
 import { ChatGPTAPIBrowser } from 'chatgpt'
-import RedisQueue from './redis-queue.js';
+import RedisAgent from './redis-agent.js';
 import puppeteer from "puppeteer";
+import crypto from 'crypto';
 
 /**
  * @typedef ChatGptClientArgs
@@ -44,12 +45,10 @@ import puppeteer from "puppeteer";
 class ChatGptClient {
 
     /**
-     * @param {number} clientId
      * @param {ChatGptClientArgs} args 
      */
-    constructor(clientId, args) {
+    constructor(args) {
 
-        this.clientId = clientId;
         this.chatApi = new ChatGPTAPIBrowser({
             email: args.accEmail,
             password: args.accPassword,
@@ -57,6 +56,9 @@ class ChatGptClient {
             isGoogleLogin: args.isGoogleLogin ?? false,
             executablePath: puppeteer.executablePath(),
         });
+
+        /** @type {ChatGptClientArgs} */
+        this.accEmail = args.accEmail;
 
         /** @type {number} */
         this.requestTimeoutMs = args.requestTimeoutMs ?? 5 * 60 * 1000;
@@ -84,15 +86,33 @@ class ChatGptClient {
      * Ask ChatGPT asyncrhonously
      * @param {ChatGptQuestion} question
      * @param {SlackMeta} slackMeta
-     * @param {number} [clientId]
      * @return {Promise<ChatResponse>}
      */
-    static async ask(question, slackMeta, clientId) {
-        if (clientId) {
-            await RedisQueue.getInstance().enqueue(`ChatGptClient-${clientId}`, { question, slackMeta });
+    static async ask(question, slackMeta) {
+
+        let accEmail;
+        if (question.conversationId) {
+            // Follow up question, look for the respective client.
+            accEmail = await RedisAgent.getInstance().get(`ChatGptConversation.${question.conversationId}.client`);
+        } 
+
+        if (accEmail) {
+            const emailHash = ChatGptClient.getEmailHash(accEmail);
+            await RedisAgent.getInstance().enqueue(`ChatGptClient.${emailHash}`, { question, slackMeta });
         } else {
-            await RedisQueue.getInstance().enqueue(`ChatGptClient-common`, { question, slackMeta });
+            await RedisAgent.getInstance().enqueue(`ChatGptClient.COMMON`, { question, slackMeta });
         }
+    }
+
+    /**
+     * Returns a hash string from a email address
+     * @param {string} accEmail
+     */
+    static getEmailHash(email) {
+        const hash = crypto.createHash('sha256');
+        hash.update(email);
+        const hashedEmail = hash.digest('hex');
+        return hashedEmail.substring(0, 8);
     }
 
     /**
@@ -100,7 +120,7 @@ class ChatGptClient {
      * @returns {Promise<void>}
      */
     async startChatGptSession() {
-        console.log('Start connecting ChatGPT session...');
+        console.info(`[${new Date().toISOString()}] CHATGPT_CONNECTING_SESSION`);
         try {
             await this.chatApi.initSession();
         } catch (err) {
@@ -110,49 +130,61 @@ class ChatGptClient {
     }
 
     /**
-     * Start listening to queue.
+     * Start listening to queues. Note each client listens to 2 queues: Common Queue and Account Specific Queue.
+     * The account specific queue is used in case that a root question is processed by a specific account previously 
+     * therefore its follow-up must also be processed by the same account.
      */
     async startListenQueue() {
-        console.log('Start listening to queue')
+        console.info(`[${new Date().toISOString()}] CHATGPT_START_LISTEN_QUEUE`);
         while (true) {
-
-            const item = await RedisQueue.getInstance().dequeue(`ChatGptClient-common`);
-            if (item) {
-                try {
-                    const answer = await this._handleAsk(item.question, true);
-                    await this.answerCallback(answer, item.question, item.slackMeta);
-                } catch (err) {
-                    await this.errorCallback(err, item.question, item.slackMeta);
-                }
-            }
-
-            // wait for queue interval
-            await new Promise(r => setTimeout(r, this.queueIntervalMs));
+            await this._popAndHandle(`ChatGptClient.COMMON`);
+            await this._popAndHandle(`ChatGptClient.${ChatGptClient.getEmailHash(this.accEmail)}`);
         }
     }
 
     /**
+     * Pops one item from queue and try to handle it
+     * @param {string} queueName 
+     */
+    async _popAndHandle(queueName) {
+        let item = await RedisAgent.getInstance().dequeue(queueName);
+        if (item) {
+            try {
+                const answer = await this._handleAsk(item.question, true);
+                // Mark the handling account of the question
+                await RedisAgent.getInstance().set(`ChatGptConversation.${answer.conversationId}.client`, this.accEmail);
+                await this.answerCallback(answer, item.question, item.slackMeta);
+            } catch (err) {
+                await this.errorCallback(err, item.question, item.slackMeta);
+            } finally {
+                await new Promise(r => setTimeout(r, this.queueIntervalMs));
+            }
+        }
+    }
+
+    /**
+     * Handle a question
      * @param {ChatGptQuestion} question 
      * @param {boolean} shouldRetry 
      * @returns {ChatGptAnswer}
      */
     async _handleAsk(question, shouldRetry) {
         try {
-            console.log(`[${new Date().toISOString()}] chatgpt_request ${JSON.stringify({ question, shouldRetry })}`);
+            console.info(`[${new Date().toISOString()}] CHATGPT_REQUEST <${this.accEmail}> ${JSON.stringify({ question, shouldRetry })}`);
             
             const result = await this.chatApi.sendMessage(question.prompt, {
                 conversationId: question.conversationId,
                 parentMessageId: question.parentMessageId,
                 timeoutMs: this.requestTimeoutMs,
             });
-            console.log(`[${new Date().toISOString()}] chatgpt_response ${JSON.stringify(result)}`); 
+            console.info(`[${new Date().toISOString()}] CHATGPT_RESPONSE <${this.accEmail}> ${JSON.stringify(result)}`); 
             return result;
 
         } catch (err) {
-            console.log(`[${new Date().toISOString()}] chatgpt_error ${JSON.stringify({ err })}`);
+            console.info(`[${new Date().toISOString()}] CHATGPT_ERROR <${this.accEmail}> ${JSON.stringify({ err })}`);
 
             if (shouldRetry && err.message?.includes('403')) {
-                console.log(`[${new Date().toISOString()}] chatgpt_refresh_session`);
+                console.info(`[${new Date().toISOString()}] CHATGPT_REFRESH_SESSION <${this.accEmail}>`);
                 await this.chatApi.refreshSession();
                 await new Promise(r => setTimeout(r, 10000));
                 return await this.ask(question, false);

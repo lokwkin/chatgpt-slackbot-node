@@ -34,10 +34,10 @@ class ChatGtpSlackBot {
      * @returns {Promise<void>}
      */
     async listen() {
-        console.info('Start listening to slack requests.');
+        console.info(`[${new Date().toISOString()}] SLACK_START_LISTENING`);
 
         this.slackApp.message(async ({ message }) => {
-            console.log(`[${new Date().toISOString()}] received_im ${JSON.stringify(message)}`);
+            console.info(`[${new Date().toISOString()}] SLACK_RECEIVED_DIRECT_MESSAGE ${JSON.stringify(message)}`);
             const { ts, thread_ts, channel, text } = message;
             if (!text) {
                 return;
@@ -47,7 +47,7 @@ class ChatGtpSlackBot {
     
         this.slackApp.event('app_mention', async ({ event }) => {
     
-            console.log(`[${new Date().toISOString()}] received_mention ${JSON.stringify(event)}`);
+            console.info(`[${new Date().toISOString()}] SLACK_RECEIVED_MENTION ${JSON.stringify(event)}`);
     
             const userIdTag = `<@${process.env.SLACK_BOT_USER_ID}>`;
             const { text, ts, channel, thread_ts } = event;
