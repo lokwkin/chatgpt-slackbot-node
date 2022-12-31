@@ -16,7 +16,7 @@ This app has two modes to start:
 ### Slack Setup
 1. Register an Slack App in [portal](https://api.slack.com/apps)
 2. Enable Socket Mode
-3. Grant these permissions: `app_mentions:read`, `channels:history`, `chat:write`, `im:history`, `im:write`, `reactions:write`
+3. Grant these permissions: `app_mentions:read`, `channels:history`, `chat:write`, `im:history`, `im:write`, `reactions:write`, `groups:history`
 
 ### Build and run with docker
 ```
@@ -45,8 +45,8 @@ docker run chatgpt_slackbot
 - To ask follow up question, reply in the answer thread, otherwise it will treat it as a new question.
 
 ### Mention in Channel
-<img src="./docs/channel-mention.png" width="50%">
+<img src="./docs/channel-mention.png" width="70%">
 
 ### Direct Message
-<img src="./docs/direct-message.png" width="50%">
+<img src="./docs/direct-message.png" width="70%">
 
