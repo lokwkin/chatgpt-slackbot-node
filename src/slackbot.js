@@ -99,7 +99,8 @@ class ChatGtpSlackBot {
         await this.slackApp.client.chat.postMessage({
             channel: slackMeta.channel,
             thread_ts: slackMeta.ts,
-            text: `>${question.prompt}${question.parentMessageId ? ' (follow-up)' : ''}\n${answer.response}\n\n_ref:${answer.conversationId}:${answer.messageId}_`
+            // text: `>${question.prompt}${question.parentMessageId ? ' (follow-up)' : ''}\n${answer.response}\n\n_ref:${answer.conversationId}:${answer.messageId}_`
+            text: `${answer.response}\n\n_ref:${answer.conversationId}:${answer.messageId}_`
         });
         await this.slackApp.client.reactions.add({ channel: slackMeta.channel, name: 'white_check_mark', timestamp: slackMeta.ts });
         await this.slackApp.client.reactions.remove({ channel: slackMeta.channel, name: 'loading', timestamp: slackMeta.ts });
