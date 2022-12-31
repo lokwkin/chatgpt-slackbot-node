@@ -1,14 +1,14 @@
 import redis from '@redis/client';
 
 /**
- * @typedef RedisQueueArg
+ * @typedef RedisAgentArg
  * @property {string} redisUrl
  */
 
-class RedisQueue {
+class RedisAgent {
 
     /**
-     * @param {RedisQueueArg} args 
+     * @param {RedisAgentArg} args 
      */
     constructor(args) {
         // create a client for connecting to Redis
@@ -31,14 +31,13 @@ class RedisQueue {
      * @param {any} message 
      */
     async enqueue(queueName, message) {
-        console.log(`[${new Date().toISOString()}] enqueue ${JSON.stringify(message)}`)
         // use the RPUSH command to add the message to the end of the list
         await this.client.rPush(queueName, JSON.stringify(message));
     }
 
     /**
      * @param {string} queueName 
-     * @returns {any}
+     * @returns {Promise<any>}
      */
     async dequeue(queueName) {
         // use the LPOP command to remove the first message from the list
@@ -47,27 +46,42 @@ class RedisQueue {
             return null;
         }
         const result = JSON.parse(message);
-        console.log(`[${new Date().toISOString()}] dequeue ${JSON.stringify(message)}`)
         return result;
     }
 
     /**
-     * @param {RedisQueueArg} args
+     * @param {string} key
+     * @returns {Promise<string>}
+     */
+    async get(key) {
+        return await this.client.GET(key);
+    }
+
+    /**
+     * @param {string} key 
+     * @param {string} value 
+     */
+    async set(key, value) {
+        await this.client.SETEX(key, 86400, value); // 1 day TTL
+    }
+
+    /**
+     * @param {RedisAgentArg} args
      */
     static async initialize(args) {
-        RedisQueue._instance = new RedisQueue(args);
-        await RedisQueue._instance.connect();
+        RedisAgent._instance = new RedisAgent(args);
+        await RedisAgent._instance.connect();
     }
     
     /**
-     * @returns {RedisQueue}
+     * @returns {RedisAgent}
      */
     static getInstance() {
-        if (!RedisQueue._instance) {
-            throw new Error('RedisQueue not initialized');
+        if (!RedisAgent._instance) {
+            throw new Error('RedisAgent not initialized');
         }
-        return RedisQueue._instance;
+        return RedisAgent._instance;
     }
 }
 
-export { RedisQueue as default }
+export { RedisAgent as default }
