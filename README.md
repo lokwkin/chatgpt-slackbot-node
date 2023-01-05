@@ -50,3 +50,6 @@ docker run chatgpt_slackbot
 ### Direct Message
 <img src="./docs/direct-message.png" width="70%">
 
+### Suggetions
+Running it from cloud servers like AWS / GCP / Azure, etc, will lead to receiving 429 error quickly. Or make use of proxy / VPN services if you insists to.
+
