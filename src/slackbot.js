@@ -166,7 +166,7 @@ class ChatGtpSlackBot {
 
         let prevAns = undefined;
         if (slackMeta.thread_ts) {
-            prevAns = await this._findPreviousChatGptMessage(slackMeta.channel, slackMeta.thread_ts, this.slackApp.client);
+            prevAns = await this._findPreviousChatGptMessage(slackMeta.channel, slackMeta.thread_ts);
         }
         // Leave loading reaction
         if (this.reactions.loading) {

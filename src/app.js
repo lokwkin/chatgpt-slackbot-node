@@ -15,7 +15,7 @@ async function main() {
     }
 
     RedisAgent.initialize({
-        redisUrl: process.env.REDIS_URL,
+        redisUrl: process.env.REDIS_URL || 'redis://127.0.0.1:6379',
     });
 
     if (process.env.START_MODE === 'slackbot') {
