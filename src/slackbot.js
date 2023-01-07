@@ -74,7 +74,7 @@ class ChatGtpSlackBot {
         });
 
         await this.slackApp.start();
-        await ChatGptClient.listenAnswer(this.answerQueueName, async (param) => {
+        await ChatGptClient.listenAnswer(this.chatGptResponseQueue, async (param) => {
             if (param.success) {
                 await this._replyAnswer(param.answer, param.question, param.extra, param.handlerId);
             } else {
