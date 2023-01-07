@@ -74,7 +74,7 @@ class ChatGptClient {
      * @param {string} opts.responseQueue The name of the queue that the answer should be enqueued to.
      * @param {string} [opts.handlerId] In case a specific handler should be used to answer the question. Mostly used in case of follow up questions.
      * @param {*} [opts.extra] Any extra information that will returned along with the answer.
-     * @return {Promise<ChatResponse>}
+     * @return {Promise<void>}
      */
     static async ask(question, opts) {
 
@@ -183,7 +183,7 @@ class ChatGptClient {
                 console.info(`[${new Date().toISOString()}] CHATGPT_REFRESH_SESSION <${this.accEmail}>`);
                 await this.chatApi.refreshSession();
                 await new Promise(r => setTimeout(r, 10000));
-                return await this.ask(question, false);
+                return await this._handleAsk(question, false);
             } else {
                 throw err;
             }
