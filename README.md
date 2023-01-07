@@ -21,6 +21,7 @@ This app has two modes to start:
 5. "App Home" -> "Message Tab" -> Check "Allow users to send Slash commands and messages from the messages tab"
 6. Obtain your Bot Token from "OAuth & Permissions" > "Bot User OAuth Token"
 7. Obtain your App Token from "Basic Information" > "App Level Token"
+8. "Install App" -> Reinstall to workspace if neccessary
 
 
 ### Build and run with docker
