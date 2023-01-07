@@ -38,8 +38,8 @@ docker run chatgpt_slackbot
 |`SLACK_APP_TOKEN`|Y|Your Slack App token. See https://api.slack.com/|
 |`SLACK_BOT_USER_ID`|Y|The User ID of your Slack Bot. See https://api.slack.com/|
 |`SLACK_REACTION_LOADING`|N|The emoji to react when loading a question, default `thinking_face`
-|`SLACK_REACTION_SUCCESS`|Y|The emoji to react when the prompt is answered, default `white_trade_mark`
-|`SLACK_REACTION_FAILED`|Y|The emoji to react when failed when processing, default `x`
+|`SLACK_REACTION_SUCCESS`|N|The emoji to react when the prompt is answered, default `white_trade_mark`
+|`SLACK_REACTION_FAILED`|N|The emoji to react when failed when processing, default `x`
 |`CHATGPT_EMAIL`|Y|The email of your chatgpt account|
 |`CHATGPT_PASSWORD`|Y|The password of your chatgpt account|
 |`CHATGPT_PROXY_SERVER`|N|e.g.: 12.123.234.345:23456, leave it blank if not used|
