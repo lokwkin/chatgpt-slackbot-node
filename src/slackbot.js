@@ -104,7 +104,7 @@ class ChatGtpSlackBot {
             text: `${answer.response}\n\n_ref:${answer.conversationId}:${answer.messageId}:${chatgptClientId}_`
         });
         await this.slackApp.client.reactions.add({ channel: slackMeta.channel, name: 'white_check_mark', timestamp: slackMeta.ts });
-        await this.slackApp.client.reactions.remove({ channel: slackMeta.channel, name: 'loading', timestamp: slackMeta.ts });
+        await this.slackApp.client.reactions.remove({ channel: slackMeta.channel, name: 'thinking_face', timestamp: slackMeta.ts });
     }
 
     /**
@@ -121,7 +121,7 @@ class ChatGtpSlackBot {
         });
         
         await this.slackApp.client.reactions.add({ channel: slackMeta.channel, name: 'x', timestamp: slackMeta.ts });
-        await this.slackApp.client.reactions.remove({ channel: slackMeta.channel, name: 'loading', timestamp: slackMeta.ts });
+        await this.slackApp.client.reactions.remove({ channel: slackMeta.channel, name: 'thinking_face', timestamp: slackMeta.ts });
     }
 
     /**
@@ -140,7 +140,7 @@ class ChatGtpSlackBot {
             prevAns = await this._findPreviousChatGptMessage(slackMeta.channel, slackMeta.thread_ts, this.slackApp.client);
         }
         // Leave loading reaction
-        const reaction = await this.slackApp.client.reactions.add({ channel: slackMeta.channel, name: 'loading', timestamp: slackMeta.ts });
+        const reaction = await this.slackApp.client.reactions.add({ channel: slackMeta.channel, name: 'thinking_face', timestamp: slackMeta.ts });
         await ChatGptClient.ask({
             prompt,
             conversationId: prevAns?.conversationId, 
