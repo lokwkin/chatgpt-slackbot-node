@@ -42,7 +42,6 @@ docker run chatgpt_slackbot
 |`CHATGPT_PROXY_SERVER`|N|e.g.: 12.123.234.345:23456, leave it blank if not used|
 |`CHATGPT_IS_GOOGLE_LOGIN`|N|1 or 0, default 0|
 |`CHATGPT_REQUEST_TIMEOUT_MS`|N|Timeout value for chatgpt request. default 300000 (5min)|
-|`QUEUE_INTERVAL_MS`|N|Interval between handling each queue item in ms. default 3000|
 
 ## Usage
 - The slackbot will listen to two types of event in slack workspace

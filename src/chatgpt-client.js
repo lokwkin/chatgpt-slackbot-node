@@ -10,7 +10,6 @@ import crypto from 'crypto';
  * @property {boolean} [isGoogleLogin]
  * @property {string|undefined} [proxyServer]
  * @property {number} [requestTimeoutMs]
- * @property {number} [queueIntervalMs]
  */
 
 /**
@@ -68,9 +67,6 @@ class ChatGptClient {
         /** @type {number} */
         this.requestTimeoutMs = args.requestTimeoutMs ?? 5 * 60 * 1000;
 
-        /** @type {number} */
-        this.queueIntervalMs = args.queueIntervalMs ?? 3000;
-
         /** @type {AnswerCallback} */
         this.answerCallback = null;
 
@@ -127,7 +123,7 @@ class ChatGptClient {
         while (true) {
             await this._popAndHandle(`ChatGptClient.COMMON`);
             await this._popAndHandle(`ChatGptClient.${this.clientId}`);
-            await new Promise(r => setTimeout(r, this.queueIntervalMs));
+            await new Promise(r => setTimeout(r, 1000));
         }
     }
 
