@@ -13,10 +13,12 @@ It also incorporates ***queue mechanism*** with redis, so that it is more flexib
 - To ask follow up question, reply in the answer thread, otherwise it will treat it as a new question.
 
 ### Mention in Channel
-<img src="./docs/channel-mention.png" width="70%">
+<img src="./docs/channel-mention-1.png" width="70%">
+<img src="./docs/channel-mention-2.png" width="50%">
 
 ### Direct Message
-<img src="./docs/direct-message.png" width="70%">
+<img src="./docs/direct-message-1.png" width="70%">
+<img src="./docs/direct-message-2.png" width="50%">
 
 ## Start Modes
 This app has two modes to start:
