@@ -6,6 +6,18 @@ This service is ***docker containerized*** and can be deployed onto servers with
 
 It also incorporates ***queue mechanism*** with redis, so that it is more flexible to handle request spikes, make sure the requests are sent one by one and in order to protect from being rate limited by ChatGPT.
 
+## Usage
+- The slackbot will listen to two types of event in slack workspace
+  - Directly message the bot in slack.
+  - Mention your bot in a channel with a question. For example: `@ChatGPT BOT` who is Donald trump?
+- To ask follow up question, reply in the answer thread, otherwise it will treat it as a new question.
+
+### Mention in Channel
+<img src="./docs/channel-mention.png" width="70%">
+
+### Direct Message
+<img src="./docs/direct-message.png" width="70%">
+
 ## Start Modes
 This app has two modes to start:
 1. `slackbot` - listens to slack event for user requests, put request to redis queue, reply to slack on answer received.
@@ -53,18 +65,6 @@ docker run chatgpt_slackbot
 |`CHATGPT_PROXY_SERVER`|N|e.g.: `12.123.234.345:23456`, leave it blank if not used|
 |`CHATGPT_IS_GOOGLE_LOGIN`|N|1 or 0, default 0|
 |`CHATGPT_REQUEST_TIMEOUT_MS`|N|Timeout value for chatgpt request. default 300000 (5min)|
-
-## Usage
-- The slackbot will listen to two types of event in slack workspace
-  - Directly message the bot in slack.
-  - Mention your bot in a channel with a question. For example: `@ChatGPT BOT` who is Donald trump?
-- To ask follow up question, reply in the answer thread, otherwise it will treat it as a new question.
-
-### Mention in Channel
-<img src="./docs/channel-mention.png" width="70%">
-
-### Direct Message
-<img src="./docs/direct-message.png" width="70%">
 
 ## Suggetions
 Running it from cloud servers like AWS / GCP / Azure, etc, will lead to receiving 429 error quickly. Or make use of proxy / VPN services if you insists to.
