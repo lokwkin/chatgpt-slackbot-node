@@ -56,6 +56,7 @@ docker run chatgpt_slackbot
 |`SLACK_REACTION_LOADING`|N|The emoji to react when loading a question, default `thinking_face`
 |`SLACK_REACTION_SUCCESS`|N|The emoji to react when the prompt is answered, default `white_trade_mark`
 |`SLACK_REACTION_FAILED`|N|The emoji to react when failed when processing, default `x`
+|`CHATGPT_RESPONSE_QUEUE_NAME`|N|Queue name to use for listening for ChatGPT answers, default `queues.answers.slackbot`
 
 #### START_MODE=chatgpt
 |Key|required|description|

@@ -13,10 +13,11 @@ import ChatGptClient from './chatgpt-client.js';
  * @typedef ChatGtpSlackBotArgs
  * @property {string} slackBotToken
  * @property {string} slackAppToken
- * @property {object} reactions
- * @property {string} reactions.loading
- * @property {string} reactions.success
- * @property {string} reactions.failed
+ * @property {string} chatGptResponseQueue
+ * @property {object} [reactions]
+ * @property {string} [reactions.loading]
+ * @property {string} [reactions.success]
+ * @property {string} [reactions.failed]
  */
 class ChatGtpSlackBot {
 
@@ -37,6 +38,9 @@ class ChatGtpSlackBot {
             success: args.reactions?.success || 'white_check_mark',
             failed: args.reactions?.failed || 'x'
         };
+
+        /** @type {string} */
+        this.chatGptResponseQueue = args.chatGptResponseQueue;
     }
 
     /**
@@ -70,7 +74,7 @@ class ChatGtpSlackBot {
         });
 
         await this.slackApp.start();
-        await ChatGptClient.listenAnswer('queues.answers.chatgpt_slackbot', async (param) => {
+        await ChatGptClient.listenAnswer(this.answerQueueName, async (param) => {
             if (param.success) {
                 await this._replyAnswer(param.answer, param.question, param.extra, param.handlerId);
             } else {
@@ -177,7 +181,7 @@ class ChatGtpSlackBot {
         };
         
         await ChatGptClient.ask(question, {
-            responseQueue: 'queues.answers.chatgpt_slackbot',
+            responseQueue: this.chatGptResponseQueue,
             handlerId: prevAns?.handlerId,
             extra: slackMeta
         });
