@@ -31,18 +31,26 @@ docker run chatgpt_slackbot
 ```
 
 ### Environment Variables
+#### START_MODE=slackbot
 |Key|required|description|
 |--|--|--|
-|`START_MODE`|Y|`slackbot` or `chatgpt`
+|`START_MODE`|Y|`slackbot`|
+|`REDIS_URL`|Y|Redis connection url, e.g.: `redis://127.0.0.1.6379`|
 |`SLACK_BOT_TOKEN`|Y|Your Slack Bot token. See https://api.slack.com/|
 |`SLACK_APP_TOKEN`|Y|Your Slack App token. See https://api.slack.com/|
 |`SLACK_BOT_USER_ID`|Y|The User ID of your Slack Bot. See https://api.slack.com/|
 |`SLACK_REACTION_LOADING`|N|The emoji to react when loading a question, default `thinking_face`
 |`SLACK_REACTION_SUCCESS`|Y|The emoji to react when the prompt is answered, default `white_trade_mark`
 |`SLACK_REACTION_FAILED`|Y|The emoji to react when failed when processing, default `x`
+
+#### START_MODE=chatgpt
+|Key|required|description|
+|--|--|--|
+|`START_MODE`|Y|`chatgpt`|
+|`REDIS_URL`|Y|Redis connection url, e.g.: `redis://127.0.0.1.6379`|
 |`CHATGPT_EMAIL`|Y|The email of your chatgpt account|
 |`CHATGPT_PASSWORD`|Y|The password of your chatgpt account|
-|`CHATGPT_PROXY_SERVER`|N|e.g.: 12.123.234.345:23456, leave it blank if not used|
+|`CHATGPT_PROXY_SERVER`|N|e.g.: `12.123.234.345:23456`, leave it blank if not used|
 |`CHATGPT_IS_GOOGLE_LOGIN`|N|1 or 0, default 0|
 |`CHATGPT_REQUEST_TIMEOUT_MS`|N|Timeout value for chatgpt request. default 300000 (5min)|
 
