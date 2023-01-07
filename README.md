@@ -17,7 +17,7 @@ This app has two modes to start:
 1. Register an Slack App in [portal](https://api.slack.com/apps)
 2. "Socket Mode" -> Enable Socket Mode
 3. "OAuth & Permissions" -> Grant these permissions: `app_mentions:read`, `channels:history`, `chat:write`, `im:history`, `im:write`, `reactions:write`, `groups:history`
-4. "Event Subscription" -> "Subscribe to bot events" -> Add "message.im" and "app_mention"
+4. "Event Subscription" -> "Subscribe to bot events" -> Add `message.im` and `app_mention`
 5. "App Home" -> "Message Tab" -> Check "Allow users to send Slash commands and messages from the messages tab"
 6. Obtain your Bot Token from "OAuth & Permissions" > "Bot User OAuth Token"
 7. Obtain your App Token from "Basic Information" > "App Level Token"
