@@ -13,20 +13,27 @@ async function main() {
     if (!START_MODE_OPTIONS.includes(process.env.START_MODE)) {
         throw new Error('Invalid start mode');
     }
-    if (!process.env.SLACK_BOT_TOKEN || !process.env.SLACK_APP_TOKEN) {
-        throw new Error('Missing slack token');
-    };
 
     RedisAgent.initialize({
         redisUrl: process.env.REDIS_URL,
     });
 
-    const slackBot = new ChatGtpSlackBot({
-        slackBotToken: process.env.SLACK_BOT_TOKEN,
-        slackAppToken: process.env.SLACK_APP_TOKEN,
-    });
-
     if (process.env.START_MODE === 'slackbot') {
+
+        if (!process.env.SLACK_BOT_TOKEN || !process.env.SLACK_APP_TOKEN) {
+            throw new Error('Missing slack token');
+        };
+    
+        const slackBot = new ChatGtpSlackBot({
+            slackBotToken: process.env.SLACK_BOT_TOKEN,
+            slackAppToken: process.env.SLACK_APP_TOKEN,
+            reactions: {
+                loading: process.env.SLACK_REACTION_LOADING,
+                success: process.env.SLACK_REACTION_SUCCESS,
+                failed: process.env.SLACK_REACTION_FAILED,
+            },
+        });
+        
         await slackBot.listen();
         
     } else if (process.env.START_MODE === 'chatgpt') {
@@ -41,18 +48,10 @@ async function main() {
             isGoogleLogin: Boolean(Number(process.env.CHATGPT_IS_GOOGLE_LOGIN)),
             proxyServer: process.env.CHATGPT_PROXY_SERVER,
             requestTimeoutMs: Number(process.env.CHATGPT_REQUEST_TIMEOUT_MS || 300000),
-            queueIntervalMs: Number(process.env.QUEUE_INTERVAL_MS || 3000),
-        });
-
-        chatGptClient.setCallbacks(async (answer, question, slackMeta, chatgptClientId) => {
-            await slackBot.replyAnswer(answer, question, slackMeta, chatgptClientId);
-        }, async (error, question, slackMeta, chatgptClientId) => {
-            await slackBot.replyError(error, question, slackMeta, chatgptClientId);
         });
 
         await chatGptClient.startChatGptSession();
-        await chatGptClient.startListenQueue();
-        
+        await chatGptClient.listenQuestion();
     }
 
 }

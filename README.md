@@ -8,8 +8,8 @@ It also incorporates ***queue mechanism*** with redis, so that it is more flexib
 
 ## Start Modes
 This app has two modes to start:
-1. `slackbot` - listens to slack event for user requests, put request to redis as queue
-2. `chatgpt` - serves as queue worker that listens to queue, forward user's questions to chatgpt, and write to slack on answer.
+1. `slackbot` - listens to slack event for user requests, put request to redis queue, reply to slack on answer received.
+2. `chatgpt` - serves as queue worker that listens to queue, forward user's questions to chatgpt, and put response back to queue on answer received.
 
 ## Setup
 
@@ -37,12 +37,14 @@ docker run chatgpt_slackbot
 |`SLACK_BOT_TOKEN`|Y|Your Slack Bot token. See https://api.slack.com/|
 |`SLACK_APP_TOKEN`|Y|Your Slack App token. See https://api.slack.com/|
 |`SLACK_BOT_USER_ID`|Y|The User ID of your Slack Bot. See https://api.slack.com/|
+|`SLACK_REACTION_LOADING`|N|The emoji to react when loading a question, default `thinking_face`
+|`SLACK_REACTION_SUCCESS`|Y|The emoji to react when the prompt is answered, default `white_trade_mark`
+|`SLACK_REACTION_FAILED`|Y|The emoji to react when failed when processing, default `x`
 |`CHATGPT_EMAIL`|Y|The email of your chatgpt account|
 |`CHATGPT_PASSWORD`|Y|The password of your chatgpt account|
 |`CHATGPT_PROXY_SERVER`|N|e.g.: 12.123.234.345:23456, leave it blank if not used|
 |`CHATGPT_IS_GOOGLE_LOGIN`|N|1 or 0, default 0|
 |`CHATGPT_REQUEST_TIMEOUT_MS`|N|Timeout value for chatgpt request. default 300000 (5min)|
-|`QUEUE_INTERVAL_MS`|N|Interval between handling each queue item in ms. default 3000|
 
 ## Usage
 - The slackbot will listen to two types of event in slack workspace

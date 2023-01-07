@@ -10,7 +10,6 @@ import crypto from 'crypto';
  * @property {boolean} [isGoogleLogin]
  * @property {string|undefined} [proxyServer]
  * @property {number} [requestTimeoutMs]
- * @property {number} [queueIntervalMs]
  */
 
 /**
@@ -18,6 +17,7 @@ import crypto from 'crypto';
  * @property {string} prompt
  * @property {string} [conversationId]
  * @property {string} [parentMessageId]
+ * @property {string} [responseQueue]
  */
 
 /**
@@ -28,22 +28,19 @@ import crypto from 'crypto';
  */
 
 /**
- * @callback AnswerCallback
- * @param {ChatGptAnswer} answer
- * @param {ChatGptQuestion} question
- * @param {SlackMeta} slackMeta
- * @param {string} chatgptClientId
+ * @typedef ChatGptCallbackParam
+ * @property {boolean} success
+ * @property {string} handlerId
+ * @property {ChatGptQuestion} question
+ * @property {ChatGptAnswer} [answer]
+ * @property {Error} [error]
+ * @property {*} [extra]
  */
 
 /**
- * @callback ErrorCallback
- * @param {Error} err
- * @param {ChatGptQuestion} question
- * @param {SlackMeta} slackMeta
- * @param {string} chatgptClientId
+ * @callback ChatGptCallback
+ * @param {ChatGptCallbackParam} param
  */
-
-
 class ChatGptClient {
 
     /**
@@ -63,43 +60,30 @@ class ChatGptClient {
         this.accEmail = args.accEmail;
 
         /** @type {string} */
-        this.clientId = this._obtainClientId();
+        this.handlerId = this._obtainHandlerId();
 
         /** @type {number} */
         this.requestTimeoutMs = args.requestTimeoutMs ?? 5 * 60 * 1000;
-
-        /** @type {number} */
-        this.queueIntervalMs = args.queueIntervalMs ?? 3000;
-
-        /** @type {AnswerCallback} */
-        this.answerCallback = null;
-
-        /** @type {ErrorCallback} */
-        this.errorCallback = null;
     }
 
     /**
-     * @param {AnswerCallback} answerCallback
-     * @param {ErrorCallback} errorCallback
-     */
-    setCallbacks(answerCallback, errorCallback) {
-        this.answerCallback = answerCallback;
-        this.errorCallback = errorCallback;
-    }
-
-    /**
-     * Ask ChatGPT asyncrhonously
-     * @param {ChatGptQuestion} question
-     * @param {SlackMeta} slackMeta
-     * @param {string} [chatgptClientId]
+     * Ask ChatGPT Asyncrhonously. Requests will be enqueued to a queue system for handlers to process. 
+     * The result will be returned through an answer queue provided by caller.
+     * @param {ChatGptQuestion} question Question
+     * @param {object} opts
+     * @param {string} opts.responseQueue The name of the queue that the answer should be enqueued to.
+     * @param {string} [opts.handlerId] In case a specific handler should be used to answer the question. Mostly used in case of follow up questions.
+     * @param {*} [opts.extra] Any extra information that will returned along with the answer.
      * @return {Promise<ChatResponse>}
      */
-    static async ask(question, slackMeta, chatgptClientId = undefined) {
+    static async ask(question, opts) {
 
-        if (chatgptClientId) {
-            await RedisAgent.getInstance().enqueue(`ChatGptClient.${chatgptClientId}`, { question, slackMeta });
+        const { responseQueue, handlerId, extra } = opts;
+
+        if (handlerId) {
+            await RedisAgent.getInstance().enqueue(`queues.questions.handler.${handlerId}`, { question, extra, responseQueue });
         } else {
-            await RedisAgent.getInstance().enqueue(`ChatGptClient.COMMON`, { question, slackMeta });
+            await RedisAgent.getInstance().enqueue(`queues.questions.handler.common`, { question, extra, responseQueue });
         }
     }
 
@@ -108,7 +92,7 @@ class ChatGptClient {
      * @returns {Promise<void>}
      */
     async startChatGptSession() {
-        console.info(`[${new Date().toISOString()}] CHATGPT_CONNECTING_SESSION`);
+        console.info(`[${new Date().toISOString()}] CHATGPT_CONNECTING_SESSION <${this.accEmail}>`);
         try {
             await this.chatApi.initSession();
         } catch (err) {
@@ -122,17 +106,32 @@ class ChatGptClient {
      * The account specific queue is used in case that a root question is processed by a specific account previously 
      * therefore its follow-up must also be processed by the same account.
      */
-    async startListenQueue() {
-        console.info(`[${new Date().toISOString()}] CHATGPT_START_LISTEN_QUEUE`);
+    async listenQuestion() {
+        console.info(`[${new Date().toISOString()}] CHATGPT_START_LISTEN_QUEUE <${this.accEmail}>`);
         while (true) {
-            await this._popAndHandle(`ChatGptClient.COMMON`);
-            await this._popAndHandle(`ChatGptClient.${this.clientId}`);
-            await new Promise(r => setTimeout(r, this.queueIntervalMs));
+            await this._popAndHandle(`queues.questions.handler.common`);
+            await this._popAndHandle(`queues.questions.handler.${this.handlerId}`);
+            await new Promise(r => setTimeout(r, 1000));
         }
     }
 
     /**
-     * Pops one item from queue and try to handle it
+     * @param {string} answerQueueName
+     * @param {ChatGptCallback} callback 
+     */
+    static async listenAnswer(answerQueueName, callback) {
+        while (true) {
+            /** @type {ChatGptCallbackParam} */
+            let item = await RedisAgent.getInstance().dequeue(answerQueueName);
+            if (item) {
+                await callback(item);
+            }
+            await new Promise(r => setTimeout(r, 1000));
+        }
+    }
+
+    /**
+     * Pops one item from queue and try to handle it. 
      * @param {string} queueName 
      */
     async _popAndHandle(queueName) {
@@ -140,9 +139,21 @@ class ChatGptClient {
         if (item) {
             try {
                 const answer = await this._handleAsk(item.question, true);
-                await this.answerCallback(answer, item.question, item.slackMeta, this.clientId);
+                await RedisAgent.getInstance().enqueue(item.responseQueue, {
+                    success: true,
+                    answer,
+                    question: item.question,
+                    extra: item.extra,
+                    handlerId: this.handlerId
+                });
             } catch (err) {
-                await this.errorCallback(err, item.question, item.slackMeta, this.clientId);
+                await RedisAgent.getInstance().enqueue(item.responseQueue, {
+                    success: false,
+                    error: err,
+                    question: item.question,
+                    extra: item.extra,
+                    handlerId: this.handlerId
+                });
             }
         }
     }
@@ -182,7 +193,7 @@ class ChatGptClient {
     /**
      * Returns a hash string from account email 
      */
-    _obtainClientId() {
+    _obtainHandlerId() {
         const hash = crypto.createHash('sha256');
         hash.update(this.accEmail);
         const hashedEmail = hash.digest('hex');
