@@ -32,6 +32,7 @@ async function main() {
                 success: process.env.SLACK_REACTION_SUCCESS,
                 failed: process.env.SLACK_REACTION_FAILED,
             },
+            chatGptResponseQueue: process.env.CHATGPT_RESPONSE_QUEUE_NAME || 'queues.answers.slackbot'
         });
         
         await slackBot.listen();
