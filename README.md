@@ -1,10 +1,10 @@
 # ChatGPT Slack Bot
 
-This Slack Bot is implemented in Node.js, under the hood it depends on [transitive-bullshit/chatgpt-api](https://github.com/transitive-bullshit/chatgpt-api), which uses puppeteer browser as solution to connect with ChatGPT.
+This Slack Bot is implemented in Node.js, under the hood it depends on [transitive-bullshit/chatgpt-api](https://github.com/transitive-bullshit/chatgpt-api), which is a package to help integrating with ChatGPT API.
 
-This service is ***docker containerized*** and can be deployed onto servers with headless chromium browser without an active display. _(Suggested to use google login in order to bypass recaptcha)_
+This service is ***docker containerized*** , and has incorporates ***queue mechanism*** with redis, so that it is more flexible to handle request spikes, make sure the requests are sent one by one and in order to protect from being rate limited by ChatGPT API. 
 
-It also incorporates ***queue mechanism*** with redis, so that it is more flexible to handle request spikes, make sure the requests are sent one by one and in order to protect from being rate limited by ChatGPT.
+(Since it is a queue-worker mechanism, you may deploy more workers (under different OpenAI accounts) to listen to a same queue if you starts to being rate limited by OpenAI. This service is smart enough to redirect the follow-up questions to the worker that handles the previous question.)
 
 ## Usage
 - The slackbot will listen to two types of event in slack workspace
@@ -63,12 +63,9 @@ docker run chatgpt_slackbot
 |--|--|--|
 |`START_MODE`|Y|`chatgpt`|
 |`REDIS_URL`|Y|Redis connection url, e.g.: `redis://127.0.0.1.6379`|
-|`CHATGPT_EMAIL`|Y|The email of your chatgpt account|
-|`CHATGPT_PASSWORD`|Y|The password of your chatgpt account|
-|`CHATGPT_PROXY_SERVER`|N|e.g.: `12.123.234.345:23456`, leave it blank if not used|
-|`CHATGPT_IS_GOOGLE_LOGIN`|N|1 or 0, default 0|
+|`OPENAI_API_KEY`|Y|API Key of your OpenAI Account|
 |`CHATGPT_REQUEST_TIMEOUT_MS`|N|Timeout value for chatgpt request. default 300000 (5min)|
-
-## Suggetions
-Running it from cloud servers like AWS / GCP / Azure, etc, will lead to receiving 429 error quickly. Or make use of proxy / VPN services if you insists to.
-
+|`CHATGPT_PARAM_TEMPERATURE`|N|ChatGPT Param `temperature`, default 0.5|
+|`CHATGPT_PARAM_TOP_P`|N|ChatGPT Param `top_p`, default 0.8|
+|`CHATGPT_PARAM_PRESENSE_PENALTY`|N|ChatGPT Param `presense_penalty`, default 0.3|
+|`CHATGPT_PARAM_FREQUENCY_PENALTY`|N|ChatGPT Param `frequency_penalty`, default 0.5|
