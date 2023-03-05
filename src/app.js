@@ -39,19 +39,21 @@ async function main() {
         
     } else if (process.env.START_MODE === 'chatgpt') {
 
-        if (!process.env.CHATGPT_EMAIL || !process.env.CHATGPT_PASSWORD) {
-            throw new Error('Missing email / password');
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('Missing api key');
         };
 
         const chatGptClient = new ChatGptClient({
-            accEmail: process.env.CHATGPT_EMAIL,
-            accPassword: process.env.CHATGPT_PASSWORD,
-            isGoogleLogin: Boolean(Number(process.env.CHATGPT_IS_GOOGLE_LOGIN)),
-            proxyServer: process.env.CHATGPT_PROXY_SERVER,
+            apiKey: process.env.OPENAI_API_KEY,
             requestTimeoutMs: Number(process.env.CHATGPT_REQUEST_TIMEOUT_MS || 300000),
+            completionParams: {
+                temperature: Number(process.env.CHATGPT_PARAM_TEMPERATURE || 0.5),
+                top_p: Number(process.env.CHATGPT_PARAM_TOP_P || 0.8),
+                presence_penalty: Number(process.env.CHATGPT_PARAM_PRESENSE_PENALTY || 0.3),
+                frequency_penalty: Number(process.env.CHATGPT_PARAM_FREQUENCY_PENALTY || 0.5),
+            },
         });
 
-        await chatGptClient.startChatGptSession();
         await chatGptClient.listenQuestion();
     }
 

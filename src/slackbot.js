@@ -88,7 +88,7 @@ class ChatGtpSlackBot {
      * In case the user is asking follow-up question in thread, try to obtain the previous chatgpt answer from the thread.
      * @param {string} channel 
      * @param {string} thread_ts 
-     * @return {Promise<{conversationId: string, parentMessageId: string, handlerId:string}>}
+     * @return {Promise<{parentMessageId: string, handlerId:string}>}
      */
     async _findPreviousChatGptMessage(channel, thread_ts) {
         
@@ -98,12 +98,11 @@ class ChatGtpSlackBot {
                 if (replies.messages[i].user === process.env.SLACK_BOT_USER_ID) {
                     // message is sent by this bot
                     const text = replies.messages[i].text;
-                    const matches = text ? /.*_ref:(\S*):(\S*):(\S*)_/.exec(text) : null;
+                    const matches = text ? /.*_ref:(\S*):(\S*)_/.exec(text) : null;
                     if (matches) {
                         return {
-                            conversationId: matches[1],
-                            parentMessageId: matches[2],
-                            handlerId: matches[3],
+                            parentMessageId: matches[1],
+                            handlerId: matches[2],
                         }
                     }
                 }
@@ -122,7 +121,7 @@ class ChatGtpSlackBot {
         await this.slackApp.client.chat.postMessage({
             channel: slackMeta.channel,
             thread_ts: slackMeta.ts,
-            text: `${answer.response}\n\n_ref:${answer.conversationId}:${answer.messageId}:${chatgptHandlerId}_`
+            text: `${answer.response}\n\n_ref:${answer.messageId}:${chatgptHandlerId}_`
         });
         if (this.reactions.success) {
             await this.slackApp.client.reactions.add({ channel: slackMeta.channel, name: this.reactions.success, timestamp: slackMeta.ts });
@@ -176,7 +175,6 @@ class ChatGtpSlackBot {
         /** @type {ChatGptQuestion} */
         const question = {
             prompt,
-            conversationId: prevAns?.conversationId, 
             parentMessageId: prevAns?.parentMessageId,
         };
         
